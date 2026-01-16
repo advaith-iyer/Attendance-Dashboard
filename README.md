@@ -75,7 +75,7 @@ Setup & Installation:
 
 1. Clone the Repository
 
-git clone https://github.com/aarushi2404/Attendance-Dashboard.git
+git clone https://github.com/advaith-iyer/Attendance-Dashboard.git
 
 cd Attendance-Dashboard
 
