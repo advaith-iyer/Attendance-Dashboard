@@ -1,0 +1,1 @@
+student_info = {'student_1': {'name': 'aarushi', 'roll_no': 'b003', 'division': 'B'}, 'student_2': {'name': 'advaith', 'roll_no': 'b040', 'division': 'B'}}

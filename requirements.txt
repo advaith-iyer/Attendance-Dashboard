@@ -1,0 +1,7 @@
+flask
+firebase-admin
+opencv-python
+tensorflow
+numpy
+google-cloud-firestore
+tzdata
