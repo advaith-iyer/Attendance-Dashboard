@@ -93,10 +93,9 @@
             color: var(--text-primary);
             text-align: center;
             margin: 0 auto;
-            margin-right: 195px;          /* ← slight right offset – adjust 48–80px as desired */
+            margin-right: 195px;
         }
 
-        /* Apple-style toggle */
         .theme-toggle-container {
             display: flex;
             align-items: center;
@@ -152,16 +151,32 @@
         .subject-header {
             background: var(--bg-card);
             border-radius: 12px;
-            padding: 20px 28px;
+            padding: 28px 36px;
             box-shadow: var(--shadow-sm);
             border-left: 6px solid var(--accent);
-            max-width: 760px;
+            max-width: 900px;
             margin: 0 auto 36px;
         }
 
         .subject-header p {
-            margin: 10px 0;
-            font-size: 1.1rem;
+            margin: 12px 0;
+            font-size: 1.15rem;
+        }
+
+        .subject-header .main-title {
+            font-size: 1.45rem;
+            margin-bottom: 16px;
+        }
+
+        .subject-header .info-row {
+            margin: 12px 0;
+        }
+
+        .subject-header .total-row {
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-light);
+            font-size: 1.18rem;
         }
 
         .subject-header b {
@@ -169,9 +184,21 @@
             font-weight: 600;
         }
 
-        .subject-header span {
+        .subject-header .value {
             color: var(--accent);
             font-weight: 600;
+        }
+
+        .subject-header .time-value {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .subject-header .total-number {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--accent);
         }
 
         .controls {
@@ -341,6 +368,18 @@
                 width: 100%;
                 max-width: 400px;
             }
+            .subject-header {
+                padding: 20px 24px;
+            }
+            .subject-header p {
+                font-size: 1.05rem;
+            }
+            .subject-header .main-title {
+                font-size: 1.3rem;
+            }
+            .subject-header .total-number {
+                font-size: 1.35rem;
+            }
         }
     </style>
 </head>
@@ -362,8 +401,23 @@
         </div>
 
         <div class="subject-header">
-            <p><b>Current Lecture:</b> <span>{{ subject }}</span></p>
-            <p><b>Date:</b> {{ date }}  |  <b>Total Marked:</b> {{ total }}</p>
+            <p class="main-title">
+                <b>Current Lecture:</b> 
+                <span class="value">{{ subject }}</span>
+            </p>
+            
+            <p class="info-row">
+                <b>Date:</b> <span class="value">{{ date }}</span>
+                   |   
+                <b>Started at:</b> <span class="time-value">{{ lecture_start_time or '—' }}</span>
+                   |   
+                <b>Ends at:</b> <span class="time-value">{{ lecture_end_time or '—' }}</span>
+            </p>
+            
+            <p class="total-row">
+                <b>Total Marked:</b> 
+                <span class="total-number">{{ total }}</span>
+            </p>
         </div>
     </div>
 
@@ -373,7 +427,7 @@
         <button class="btn-report"      onclick="location.href='/generate_report'">Download CSV Report</button>
     </div>
 
-    <p class="note">Note: Camera windows will open separately. Use ESC key to close them. Page auto-refreshes every 10 seconds.</p>
+    <p class="note">Note: Camera windows will open separately. Use ESC key to close them. Page auto-refreshes every 10 seconds.<br> Entry after 10 minutes of lecture start is marked late.</p>
 
     <div class="filter-bar">
         <input type="text" id="searchInput" placeholder="Search by name, roll no, ID or status..." onkeyup="filterTable()">
@@ -485,26 +539,34 @@ const headers = table.querySelectorAll('thead th[data-sort]');
 headers.forEach(header => {
     header.addEventListener('click', () => {
         const sortKey = header.getAttribute('data-sort');
-        const isAsc = header.classList.contains('asc');
+        const currentlyAsc = header.classList.contains('asc');
 
         headers.forEach(h => h.classList.remove('asc', 'desc'));
-        header.classList.add(isAsc ? 'desc' : 'asc');
-        const direction = isAsc ? -1 : 1;
+        header.classList.add(currentlyAsc ? 'desc' : 'asc');
+
+        const direction = currentlyAsc ? -1 : 1;
 
         const tbody = table.tBodies[0];
         const rows = Array.from(tbody.rows).filter(r => !r.classList.contains('empty-state-row'));
 
         rows.sort((a, b) => {
-            const aCell = a.querySelector(`td[data-value]`);
-            const bCell = b.querySelector(`td[data-value]`);
+            const colIndex = Array.from(header.parentElement.children).indexOf(header);
+            const aCell = a.cells[colIndex];
+            const bCell = b.cells[colIndex];
 
-            let aVal = aCell ? aCell.getAttribute('data-value') : '';
-            let bVal = bCell ? bCell.getAttribute('data-value') : '';
+            let aVal = aCell?.getAttribute('data-value') ?? aCell?.textContent.trim() ?? '';
+            let bVal = bCell?.getAttribute('data-value') ?? bCell?.textContent.trim() ?? '';
 
             if (sortKey === 'status') {
-                const order = { 'present': 1, 'late': 2, 'absent': 3, '': 999 };
-                aVal = order[aVal.toLowerCase()] || 999;
-                bVal = order[bVal.toLowerCase()] || 999;
+                const order = {
+                    'present': 1,
+                    'late':    2,
+                    'absent':  3,
+                    '':        999,
+                    '—':       999
+                };
+                aVal = order[aVal.toLowerCase()] ?? 999;
+                bVal = order[bVal.toLowerCase()] ?? 999;
             }
 
             if (aVal < bVal) return -direction;
