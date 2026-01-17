@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 from firebase_config import db
 from students import student_info
-from timetable import get_current_subject, get_current_subject_time
+from timetable import get_current_lecture, get_current_subject
 
 # ---------------- IST UTILITY ----------------
 IST = ZoneInfo("Asia/Kolkata")
@@ -18,7 +18,7 @@ def ist_now():
 
 # ---------------- CONFIG ----------------
 CONFIDENCE_THRESHOLD = 0.75  # 0.0–1.0 scale
-LECTURE_START = get_current_subject_time()  # returns time object
+LECTURE_START = get_current_lecture().get("start_time")  # returns time object
 GRACE_MINUTES = 10
 # ----------------------------------------
 
