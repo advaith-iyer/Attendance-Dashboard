@@ -6,38 +6,48 @@ IST = ZoneInfo("Asia/Kolkata")
 # -------------------------------------------
 
 # ---------------- TIMETABLE ----------------
+# Using 24-hour time objects (very natural in Python)
 timetable = [
-    {"subject": "Math", "start": time(0, 0), "end": time(4, 0)},
-    {"subject": "Physics", "start": time(4, 0), "end": time(10, 0)},
-    {"subject": "Test", "start": time(10, 0), "end": time(16, 0)},   # Testing
-    {"subject": "Chemistry", "start": time(16, 0), "end": time(21, 0)},
-    {"subject": "Computer", "start": time(21, 0), "end": time(23, 59)},
+    {"subject": "Math",      "start": time(0, 0),   "end": time(4, 0)},
+    {"subject": "Physics",   "start": time(4, 0),   "end": time(10, 0)},
+    {"subject": "Biology",   "start": time(14, 49), "end": time(16, 0)},  # Testing slot
+    {"subject": "Chemistry", "start": time(16, 0),  "end": time(21, 0)},
+    {"subject": "Computer",  "start": time(21, 0),  "end": time(23, 59)},
 ]
 # -------------------------------------------
 
+def get_current_lecture():
+    """
+    Returns dict with current lecture info or None if no lecture is active.
+    Includes subject + start/end time objects.
+    """
+    now = datetime.now(IST).time()
+
+    for slot in timetable:
+        if slot["start"] <= now <= slot["end"]:
+            return {
+                "subject": slot["subject"],
+                "start_time": slot["start"],   # datetime.time object
+                "end_time":   slot["end"],     # datetime.time object
+            }
+    return None
+
+
 def get_current_subject():
     """
-    Returns the subject based on CURRENT IST time.
-    Called by app.py, entry.py, exit.py
+    Compatibility function - returns only subject name or None.
+    Used by entry.py / exit.py if they only need subject.
     """
-    now = datetime.now(IST).time()
-
-    for slot in timetable:
-        if slot["start"] <= now <= slot["end"]:
-            return slot["subject"]
-
-    return None
+    lecture = get_current_lecture()
+    return lecture["subject"] if lecture else None
 
 
-def get_current_subject_time():
+def get_current_lecture_times():
     """
-    Returns the lecture START time (IST) for late‑entry logic.
-    Used in entry.py
+    Returns start & end time objects (or None).
+    Can be used when you only need the times.
     """
-    now = datetime.now(IST).time()
-
-    for slot in timetable:
-        if slot["start"] <= now <= slot["end"]:
-            return slot["start"]
-
-    return None
+    lecture = get_current_lecture()
+    if lecture:
+        return lecture["start_time"], lecture["end_time"]
+    return None, None
